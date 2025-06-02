@@ -58,7 +58,7 @@ lazy_static::lazy_static! {
     static ref ONLINE: Mutex<HashMap<String, i64>> = Default::default();
     pub static ref PROD_RENDEZVOUS_SERVER: RwLock<String> = RwLock::new("".to_owned());
     pub static ref EXE_RENDEZVOUS_SERVER: RwLock<String> = Default::default();
-    pub static ref APP_NAME: RwLock<String> = RwLock::new("RustDesk".to_owned());
+    pub static ref APP_NAME: RwLock<String> = RwLock::new("VSpacerRemote".to_owned());
     static ref KEY_PAIR: Mutex<Option<KeyPair>> = Default::default();
     static ref USER_DEFAULT_CONFIG: RwLock<(UserDefaultConfig, Instant)> = RwLock::new((UserDefaultConfig::load(), Instant::now()));
     pub static ref NEW_STORED_PEER_CONFIG: Mutex<HashSet<String>> = Default::default();
@@ -98,8 +98,10 @@ const CHARS: &[char] = &[
     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ];
 
-pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
-pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+// [FIXED] ID 서버의 주소와 공개 키 값을 미리 추가하고 싶은 경우 다음의 값을 변경한다.
+// RENDEZVOUS_SERVERS(ID 서버), RS_PUB_KEY
+pub const RENDEZVOUS_SERVERS: &[&str] = &["112.175.66.61"];
+pub const RS_PUB_KEY: &str = "XxDfH+RjzIpOPIODlrmNujQuXR5a1s27NJ7Siqe8mRM=";
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
 pub const RELAY_PORT: i32 = 21117;
@@ -536,12 +538,17 @@ impl Config {
         let mut config = Config::load_::<Config>("");
         let mut store = false;
         let (password, _, store1) = decrypt_str_or_original(&config.password, PASSWORD_ENC_VERSION);
-        config.password = password;
+        // [FIXED] AS-IS:
+        // config.password = password
+        // [FIXED] TO-BE:
+        config.password = "Epahdyd!!23".to_string().into();
         store |= store1;
         let mut id_valid = false;
         let (id, encrypted, store2) = decrypt_str_or_original(&config.enc_id, PASSWORD_ENC_VERSION);
         if encrypted {
             config.id = id;
+            // [FIXED] 다음 행을 추가한다.
+            config.password = password;
             id_valid = true;
             store |= store2;
         } else if
@@ -787,6 +794,7 @@ impl Config {
         }
     }
 
+    // [FIXED] ID 설정
     pub fn set_id(id: &str) {
         let mut config = CONFIG.write().unwrap();
         if id == config.id {
@@ -822,36 +830,46 @@ impl Config {
         std::cmp::max(CONFIG2.read().unwrap().serial, SERIAL)
     }
 
-    fn get_auto_id() -> Option<String> {
-        #[cfg(any(target_os = "android", target_os = "ios"))]
-        {
-            return Some(
-                rand::thread_rng()
-                    .gen_range(1_000_000_000..2_000_000_000)
-                    .to_string(),
-            );
-        }
+	// NOTE: ID 생성
+	fn get_auto_id() -> Option<String> {
+		// [FIXED] AS-IS: 기존 코드를 주석 처리한다.
+		// NOTE: 랜덤 생성(Mobile), MAC 주소 SHIFT 연산(PC)
+        // #[cfg(any(target_os = "android", target_os = "ios"))]
+        // {
+        //     return Some(
+        //         rand::thread_rng()
+        //             .gen_range(1_000_000_000..2_000_000_000)
+        //             .to_string(),
+        //     );
+        // }
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            let mut id = 0u32;
-            if let Ok(Some(ma)) = mac_address::get_mac_address() {
-                for x in &ma.bytes()[2..] {
-                    id = (id << 8) | (*x as u32);
-                }
-                id &= 0x1FFFFFFF;
-                Some(id.to_string())
-            } else {
-                None
-            }
-        }
+        // #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        // {
+        //     let mut id = 0u32;
+        //     if let Ok(Some(ma)) = mac_address::get_mac_address() {
+        //         for x in &ma.bytes()[2..] {
+        //             id = (id << 8) | (*x as u32);
+        //         }
+        //         id &= 0x1FFFFFFF;
+        //     } else {
+        //         None
+        //     }
+        // }
+
+		// [FIXED] TO-BE: 코드를 다음과 같이 변경한다.
+        return "demouser1".to_string().into();
     }
 
+    // NOTE: PW 변경
     pub fn get_auto_password(length: usize) -> String {
+        // [FIXED] AS-IS: 기존 코드를 주석 처리한다.
         let mut rng = rand::thread_rng();
         (0..length)
             .map(|_| CHARS[rng.gen::<usize>() % CHARS.len()])
             .collect()
+
+        // [FIXED] TO-BE: 코드를 다음과 같이 변경한다.
+        // return "AutoPassword!23".to_string().into();
     }
 
     pub fn get_key_confirmed() -> bool {
@@ -978,15 +996,21 @@ impl Config {
         }
     }
 
-    pub fn update_id() {
+    // NOTE: ID 변경
+	pub fn update_id() {
         // to-do: how about if one ip register a lot of ids?
         let id = Self::get_id();
-        let mut rng = rand::thread_rng();
-        let new_id = rng.gen_range(1_000_000_000..2_000_000_000).to_string();
+        // [FIXED] AS-IS: 기존 코드를 주석 처리한다.
+        // let mut rng = rand::thread_rng();
+        // let new_id = rng.gen_range(1_000_000_000..2_000_000_000).to_string();
+
+		// [FIXED] TO-BE: 코드를 다음과 같이 변경한다.
+        let new_id = "demouser1".to_string();
         Config::set_id(&new_id);
         log::info!("id updated from {} to {}", id, new_id);
     }
 
+    // NOTE: Permanent Password 설정
     pub fn set_permanent_password(password: &str) {
         if HARD_SETTINGS
             .read()
@@ -1000,7 +1024,10 @@ impl Config {
         if password == config.password {
             return;
         }
-        config.password = password.into();
+        // [FIXED] AS-IS: 기존 코드를 주석 처리한다.
+        // config.password = password.into();
+        // [FIXED] TO-BE: 코드를 다음과 같이 변경한다.
+        config.password = "Epahdyd!!23".to_string().into();
         config.store();
         Self::clear_trusted_devices();
     }

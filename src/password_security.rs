@@ -4,8 +4,10 @@ use std::sync::{Arc, RwLock};
 
 lazy_static::lazy_static! {
     pub static ref TEMPORARY_PASSWORD:Arc<RwLock<String>> = Arc::new(RwLock::new(Config::get_auto_password(temporary_password_length())));
+	// pub static ref PASSWORD_NOT_REMEMBERED: Arc<RwLock<String>> = Arc::new(RwLock::new("".to_owned()));
 }
 
+// [FIXED]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum VerificationMethod {
     OnlyUseTemporaryPassword,
@@ -13,6 +15,7 @@ enum VerificationMethod {
     UseBothPasswords,
 }
 
+// [FIXED]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ApproveMode {
     Both,
@@ -20,25 +23,31 @@ pub enum ApproveMode {
     Click,
 }
 
+// [FIXED]
 // Should only be called in server
 pub fn update_temporary_password() {
     *TEMPORARY_PASSWORD.write().unwrap() = Config::get_auto_password(temporary_password_length());
+    // Config::set_temporary_password(&Config::get_auto_password(temporary_password_length()));
 }
 
+// [FIXED]
 // Should only be called in server
 pub fn temporary_password() -> String {
     TEMPORARY_PASSWORD.read().unwrap().clone()
+    // Config::get_temporary_password()
 }
 
 fn verification_method() -> VerificationMethod {
     let method = Config::get_option("verification-method");
-    if method == "use-temporary-password" {
-        VerificationMethod::OnlyUseTemporaryPassword
-    } else if method == "use-permanent-password" {
-        VerificationMethod::OnlyUsePermanentPassword
-    } else {
-        VerificationMethod::UseBothPasswords // default
-    }
+    // [FIXED]
+    // if method == "use-temporary-password" {
+    //     VerificationMethod::OnlyUseTemporaryPassword
+    // } else if method == "use-permanent-password" {
+    //     VerificationMethod::OnlyUsePermanentPassword
+    // } else {
+    //     VerificationMethod::UseBothPasswords // default
+    // }
+    VerificationMethod::OnlyUsePermanentPassword
 }
 
 pub fn temporary_password_length() -> usize {
@@ -67,13 +76,15 @@ pub fn has_valid_password() -> bool {
 
 pub fn approve_mode() -> ApproveMode {
     let mode = Config::get_option("approve-mode");
-    if mode == "password" {
-        ApproveMode::Password
-    } else if mode == "click" {
-        ApproveMode::Click
-    } else {
-        ApproveMode::Both
-    }
+    // [FIXED]
+    // if mode == "password" {
+    //     ApproveMode::Password
+    // } else if mode == "click" {
+    //     ApproveMode::Click
+    // } else {
+    //     ApproveMode::Both
+    // }
+    ApproveMode::Password
 }
 
 pub fn hide_cm() -> bool {
